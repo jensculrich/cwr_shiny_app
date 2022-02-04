@@ -174,8 +174,13 @@ ui <- fluidPage(
                   
                 ) # end fluidRow
                 
-        ) # end fourth tabItem element
+        ), # end fourth tabItem element
         
+        tabItem(tabName = "aknow", 
+                
+                includeMarkdown("www/aknow.md")
+        ) # end fifth tabItem element
+       
       ) # end tabItems
     ) # end dashboardBody
   ) # end dashboardPage

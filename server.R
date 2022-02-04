@@ -323,6 +323,43 @@ shinyServer(function(input, output, session){
     
   })
   
+  tableData <- reactive({ 
+    ecoregionTableData <- ecoregion_gap_table %>%
+      # filter the table to the selected CWR
+      filter(ecoregion_gap_table$SPECIES == input$inSelectedCWR) %>%
+      
+      # tally the number of rows in each ecoregion with an existing accession (garden is not NA)
+      dplyr::group_by(ECO_NAME) %>%
+      add_tally(!is.na(GARDEN_CODE)) %>%
+      rename("accessions_in_ecoregion" = "n")  %>%
+      ungroup() %>%
+      
+      # convert number of accessions to a binary "is there or is there not an accession from x region"
+      dplyr::group_by(ECO_NAME) %>%
+      filter(row_number() == 1) %>%
+      filter(!is.na(ECO_NAME)) %>%
+      mutate(binary = ifelse(
+        accessions_in_ecoregion > 0, 1, 0)) %>%
+      ungroup() %>%
+      
+      # use the binary variable to determine the proportion of native regions with an accession
+      mutate(num_native_ecoregions = sum(!duplicated(ECO_NAME))) %>%
+      mutate(num_covered_ecoregions = sum(binary)) %>%
+      mutate(perc_ecoregion_range_covered = 
+               num_covered_ecoregions / num_native_ecoregions) %>%
+      
+      # format the data for the summary table 
+      filter(row_number() == 1) %>%
+      dplyr::select(num_native_ecoregions, num_covered_ecoregions,
+                    total_accessions_sp,
+                    garden_accessions_w_finest_taxon_res,
+                    genebank_accessions_w_finest_taxon_res,
+                    ROUNDED_N_RANK,
+                    NATIVE) %>%
+      mutate(num_covered_ecoregions = as.integer(num_covered_ecoregions)) 
+  
+  })
+  
   # add plot to the main panel using the reactive plotData() function
   #output$gapPlot <- renderPlot({
     
@@ -360,15 +397,17 @@ shinyServer(function(input, output, session){
     
     mydat_filtered <- mydat %>%
       filter(!is.na(binary)) %>%
-      mutate(label_text = ifelse(binary == 1, "Yes", "No"))
+      mutate(label_text = ifelse(binary == 1, "Yes", "No")) %>%
+      mutate(binary = as.factor(binary))
       
     # mypalette_discrete <- colorFactor(palette = c("gray80", "gray18"), domain=mydat_filtered$binary)
-    mypalette_discrete<- c("gray80", "gray18")
+    # mypalette_discrete<- c("gray80", "gray18")
+    mypalette_discrete <- colorFactor(c("gray80", "gray18"), c("0", "1"))
     
     # Prepare the text for tooltips:
     mytext <- paste(
       "Region: ", mydat_filtered$ECO_NAME,"<br/>", 
-      "Ex situ collections from region: ", mydat_filtered$label_text, "<br/>", 
+      "ex situ collections from region: ", mydat_filtered$label_text, "<br/>", 
       sep="") %>%
       lapply(htmltools::HTML)
     
@@ -377,8 +416,9 @@ shinyServer(function(input, output, session){
       addTiles()  %>% 
       setView(lat=60, lng=-98 , zoom=3)  %>%
       addPolygons(fillOpacity = 0.5, 
-                  smoothFactor = 0.5, 
-                  color = ~colorFactor(mypalette_discrete, binary)(binary),
+                  smoothFactor = 0.5,
+                  weight = 0.5,
+                  fillColor = ~mypalette_discrete(binary),
                   label = mytext,
                   layerId = ~ECO_NAME) # %>%
       
@@ -397,11 +437,24 @@ shinyServer(function(input, output, session){
     
     leafletProxy("choroplethPlot2", data = mydat_filtered) %>%
       addCircles(lng = ~longitude, 
-                 lat = ~latitude, 
+                 lat = ~latitude,
+                 fillOpacity = 0.5,
                  weight = 1,
                  color = ~palette_for_points(INSTITUTION),
                  radius = 50000
       )
   })
+  
+  # add gap table to the main panel using the reactive tableData() function
+  output$gapTable <- DT::renderDataTable({
+    datatable(tableData(), 
+              colnames = c("Native regions", 
+                           "Regions represented by ex situ collections", 
+                           "Total ex situ accessions", 
+                           "Canadian, wild-origin accessions (BG)", 
+                           "Canadian, wild-origin accessions (G)",
+                           "Conservation Status",
+                           "Native"))
+  }) # end renderTable
   
 }) # server
