@@ -13,7 +13,6 @@ canada_ecoregions_geojson <- st_read("data/canada_ecoregions_clipped.geojson", q
 canada_provinces_geojson <- st_read("data/canada_provinces.geojson", quiet = TRUE)
 ecoregion_gap_table <- as_tibble(read.csv("data/ecoregion_gap_table_by_species.csv"))
 ecoregion_gap_table_t <- as_tibble(read.csv("data/ecoregion_gap_table_by_taxon.csv"))
-inventory <- as_tibble(read.csv("data/inventory.csv"))
 
 # Define map projection
 crs_string = "+proj=lcc +lat_1=49 +lat_2=77 +lon_0=-91.52 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
@@ -195,13 +194,13 @@ shinyServer(function(input, output, session){
       filtered_inventory <- ecoregion_gap_table_t %>%
         filter(TIER == 1)
     } else if(xx == "Forest resources"){
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(PRIMARY_ASSOCIATED_CROP_TYPE_GENERAL_1 == "Forest Resources")
     } else if(xx == "Forage and feed crops"){
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1 == "Forage and Feed")
     } else {
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(WUS == "Y")
     }
     
@@ -220,16 +219,16 @@ shinyServer(function(input, output, session){
     xx <- input$inSelectedGroup2
     
     if(xx == "Food crop relatives"){
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(TIER == 1)
     } else if(xx == "Forest resources"){
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(PRIMARY_ASSOCIATED_CROP_TYPE_GENERAL_1 == "Forest Resources")
     } else if(xx == "Forage and feed crops"){
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1 == "Forage and Feed")
     } else {
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(WUS == "Y")
     }
     
@@ -252,16 +251,16 @@ shinyServer(function(input, output, session){
     xx <- input$inSelectedGroup2
     
     if(xx == "Food crop relatives"){
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(TIER == 1)
     } else if(xx == "Forest resources"){
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(PRIMARY_ASSOCIATED_CROP_TYPE_GENERAL_1 == "Forest Resources")
     } else if(xx == "Forage and feed crops"){
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1 == "Forage and Feed")
     } else {
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(WUS == "Y")
     }
     
@@ -323,39 +322,42 @@ shinyServer(function(input, output, session){
   })
   
   tableData <- reactive({ 
-    ecoregionTableData <- ecoregion_gap_table %>%
+    ecoregionTableData <- ecoregion_gap_table_t %>%
       # filter the table to the selected CWR
-      filter(ecoregion_gap_table$SPECIES == input$inSelectedCWR) %>%
+      filter(ecoregion_gap_table_t$SPECIES == input$inSelectedCWR) %>%
       
       # tally the number of rows in each ecoregion with an existing accession (garden is not NA)
-      dplyr::group_by(ECO_NAME) %>%
+      dplyr::group_by(TAXON, ECO_NAME) %>%
       add_tally(!is.na(GARDEN_CODE)) %>%
       rename("accessions_in_ecoregion" = "n")  %>%
       ungroup() %>%
       
       # convert number of accessions to a binary "is there or is there not an accession from x region"
-      dplyr::group_by(ECO_NAME) %>%
+      dplyr::group_by(TAXON, ECO_NAME) %>%
       filter(row_number() == 1) %>%
       filter(!is.na(ECO_NAME)) %>%
       mutate(binary = ifelse(
         accessions_in_ecoregion > 0, 1, 0)) %>%
       ungroup() %>%
       
+      #group_by(SPECIES) %>%
+      #tidyr::fill(total_accessions_sp, .direction = "up") %>%
+      #ungroup()
+      
       # use the binary variable to determine the proportion of native regions with an accession
+      group_by(TAXON) %>%
       mutate(num_native_ecoregions = sum(!duplicated(ECO_NAME))) %>%
       mutate(num_covered_ecoregions = sum(binary)) %>%
       mutate(perc_ecoregion_range_covered = 
                num_covered_ecoregions / num_native_ecoregions) %>%
       
-      # format the data for the summary table 
+      # format the data for the summary table
       filter(row_number() == 1) %>%
-      dplyr::select(num_native_ecoregions, num_covered_ecoregions,
+      dplyr::select(num_native_ecoregions,
                     total_accessions_sp,
                     garden_accessions_w_finest_taxon_res,
                     genebank_accessions_w_finest_taxon_res,
-                    ROUNDED_N_RANK,
-                    NATIVE) %>%
-      mutate(num_covered_ecoregions = as.integer(num_covered_ecoregions)) 
+                    ROUNDED_N_RANK)
   
   })
   
@@ -447,13 +449,11 @@ shinyServer(function(input, output, session){
   # add gap table to the main panel using the reactive tableData() function
   output$gapTable <- DT::renderDataTable({
     datatable(tableData(), rownames= FALSE,
-              colnames = c("Native regions", 
-                           "Regions represented by ex situ collections", 
+              colnames = c("Native regions",
                            "Total ex situ accessions", 
                            "Canadian, wild-origin accessions (BG)", 
                            "Canadian, wild-origin accessions (G)",
-                           "Conservation Status",
-                           "Native"))
+                           "Conservation Status"))
   }) # end renderTable
   
 }) # server

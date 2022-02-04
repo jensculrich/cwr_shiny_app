@@ -9,7 +9,6 @@
 ###########################
 
 library(shiny)
-# library(shinythemes)
 library(sf) # the base package manipulating shapes
 library(spdplyr) # the `dplyr` counterpart for shapes
 library(dplyr) # data wrangling
