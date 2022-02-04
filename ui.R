@@ -9,7 +9,7 @@
 ###########################
 
 library(shiny)
-library(shinythemes)
+# library(shinythemes)
 library(sf) # the base package manipulating shapes
 library(spdplyr) # the `dplyr` counterpart for shapes
 library(dplyr) # data wrangling
@@ -46,7 +46,7 @@ canada_provinces_geojson <- st_read("data/canada_provinces.geojson", quiet = TRU
 ecoregion_gap_table <- as_tibble(read.csv("data/ecoregion_gap_table_by_species.csv"))
 
 # order gap tables so that user choices are alphabetically organized
-ecoregion_gap_table <- ecoregion_gap_table[order(ecoregion_gap_table$PRIMARY_ASSOCIATED_CROP_COMMON_NAME),]
+ecoregion_gap_table <- ecoregion_gap_table[order(ecoregion_gap_table$PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1),]
 
 
 dbHeader <- dashboardHeader(title = "My Dashboard",
@@ -99,7 +99,83 @@ ui <- fluidPage(
         # Second tab element
         tabItem(tabName = "about",
                 includeMarkdown("www/about.md")
-        ) # end second tabItem element
+        ), # end second tabItem element
+        
+        # Third tab element
+        tabItem(tabName = "find",
+                
+                includeMarkdown("www/find.md"),
+                
+                fluidRow(
+                  box(#title = "Find Native CWR",
+                    #solidHeader = T,
+                    width = 4,
+                    collapsible = T,
+                    
+                    # want to update this so it's dependent on users choice of provinces v. ecoregions
+                    # user chooses a group of interest
+                    selectInput("inSelectedGroup", "Select a CWR or WUS group of interest", 
+                                choices = c("Food crop relatives", "Forest resources",
+                                            "Forage and feed crops", "Wild-utilized plant species")
+                                ), # end select input
+                    # user may choose an ecoregion of interest (or click on one from the map)
+                    selectInput("inRegion", "Filter CWR List by a Region:",
+                                choices = ecoregion_gap_table$ECO_NAME
+                                ), # end select input
+                  ), # end box
+                    
+                  box(#title = "Range map", solidHeader = T,
+                    width = 8, collapsible = T,
+                    leafletOutput("choroplethPlot"),
+                    dataTableOutput("nativeRangeTable")
+                  ) # end box
+                ) # end fluidRow
+                  
+        ), # end third tabItem element
+        
+        tabItem(tabName = "explore",
+                
+                includeMarkdown("www/explore.md"),
+                
+                fluidRow(
+                  box(#title = "Find Native CWR",
+                    #solidHeader = T,
+                    width = 4,
+                    collapsible = T,
+                    
+                    # want to update this so it's dependent on users choice of provinces v. ecoregions
+                    # user chooses a group of interest
+                    selectInput("inSelectedGroup2", "Select a CWR or WUS group of interest", 
+                                choices = c("Food crop relatives", "Forest resources",
+                                            "Forage and feed crops", "Wild-utilized plant species")
+                                ), # end select input
+                    # user chooses a crop of interest
+                    selectInput("inSelectedUse", "Select a Crop Category", 
+                                choices = "", selected = ""
+                                ), # end select input
+                    # user chooses a crop of interest
+                    selectInput("inSelectedCrop", "Select a Crop", 
+                                choices = "", selected = ""
+                                ), # end select input
+                    # user chooses a CWR (filtered to match the selected crop)
+                    # update this so that user can choose a CWR without first selecting crop
+                    selectInput("inSelectedCWR", "Select a Crop Wild Relative or WUS", 
+                                choices = "", selected = ""
+                                ) # end select input
+                  ), # end box
+                  
+                  box(#title = "Range map", solidHeader = T,
+                    width = 8, collapsible = T,
+                    plotOutput("gapPlot"),
+                    includeMarkdown("www/conservation_tab.md"),
+                    # provide summary data for the CWR
+                    dataTableOutput("gapTable")
+                  ) # end box
+                  
+                ) # end fluidRow
+                
+        ) # end fourth tabItem element
+        
       ) # end tabItems
     ) # end dashboardBody
   ) # end dashboardPage
