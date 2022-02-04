@@ -12,6 +12,7 @@
 canada_ecoregions_geojson <- st_read("data/canada_ecoregions_clipped.geojson", quiet = TRUE)
 canada_provinces_geojson <- st_read("data/canada_provinces.geojson", quiet = TRUE)
 ecoregion_gap_table <- as_tibble(read.csv("data/ecoregion_gap_table_by_species.csv"))
+ecoregion_gap_table_t <- as_tibble(read.csv("data/ecoregion_gap_table_by_taxon.csv"))
 inventory <- as_tibble(read.csv("data/inventory.csv"))
 
 # Define map projection
@@ -60,16 +61,16 @@ shinyServer(function(input, output, session){
     x <- input$inSelectedGroup
     
     if(x == "Food crop relatives"){
-      filtered_ecoregion_gap_table <- ecoregion_gap_table %>%
+      filtered_ecoregion_gap_table <- ecoregion_gap_table_t %>%
         filter(TIER == 1)
     } else if(x == "Forest resources"){
-      filtered_ecoregion_gap_table <- ecoregion_gap_table %>%
+      filtered_ecoregion_gap_table <- ecoregion_gap_table_t %>%
         filter(PRIMARY_ASSOCIATED_CROP_TYPE_GENERAL_1 == "Forest Resources")
     } else if(x == "Forage and feed crops"){
-      filtered_ecoregion_gap_table <- ecoregion_gap_table %>%
+      filtered_ecoregion_gap_table <- ecoregion_gap_table_t %>%
         filter(PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1 == "Forage and Feed")
     } else {
-      filtered_ecoregion_gap_table <- ecoregion_gap_table %>%
+      filtered_ecoregion_gap_table <- ecoregion_gap_table_t %>%
         filter(WUS == "Y")
     }
     
@@ -110,7 +111,7 @@ shinyServer(function(input, output, session){
       dplyr::group_by(ECO_NAME) %>%
       # distinct (since when there are >1 accessions for a species from the province the 
       # row gets expanded. We just want a count of one row per species found in the province)
-      distinct(SPECIES, .keep_all = TRUE) %>%
+      distinct(TAXON, .keep_all = TRUE) %>%
       # tally the number of species
       add_tally() %>%
       rename("variable" = "n") 
@@ -135,17 +136,17 @@ shinyServer(function(input, output, session){
       dplyr::group_by(ECO_NAME) %>%
       # distinct (since when there are >1 accessions for a species from the province the 
       # row gets expanded. We just want a count of one row per species found in the province)
-      distinct(SPECIES, .keep_all = TRUE) %>%
+      distinct(TAXON, .keep_all = TRUE) %>%
       # tally the number of species
       add_tally() %>%
       rename("variable" = "n") %>%
       
       dplyr::select(ECO_NAME, PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1, 
                     PRIMARY_ASSOCIATED_CROP_COMMON_NAME, 
-                    SPECIES, variable) %>%
+                    TAXON, variable) %>%
       
       relocate(ECO_NAME, PRIMARY_ASSOCIATED_CROP_COMMON_NAME, 
-               SPECIES, PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1, 
+               TAXON, PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1, 
                variable) %>%
       rename("total CWRs in ecoregion" = "variable")
   }) # end get table data
@@ -181,7 +182,7 @@ shinyServer(function(input, output, session){
   
   output$nativeRangeTable <- DT::renderDataTable({
     datatable(tableDataNativeRanges(), 
-             colnames = c("Region", "Crop", "Species", "Category", "CWR in Region"))
+             colnames = c("Region", "Crop", "Taxon", "Category", "CWR in Region"))
   }) # end renderTable
   
   ##########################

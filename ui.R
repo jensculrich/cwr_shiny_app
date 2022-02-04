@@ -44,6 +44,7 @@ canada_provinces_geojson <- st_read("data/canada_provinces.geojson", quiet = TRU
 # along with a row for each garden accession from each native province.
 # ecoregion_gap_table has similar setup
 ecoregion_gap_table <- as_tibble(read.csv("data/ecoregion_gap_table_by_species.csv"))
+ecoregion_gap_table_t <- as_tibble(read.csv("data/ecoregion_gap_table_by_taxon.csv"))
 
 # order gap tables so that user choices are alphabetically organized
 ecoregion_gap_table <- ecoregion_gap_table[order(ecoregion_gap_table$PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1),]
@@ -120,7 +121,7 @@ ui <- fluidPage(
                                 ), # end select input
                     # user may choose an ecoregion of interest (or click on one from the map)
                     selectInput("inRegion", "Filter CWR List by a Region:",
-                                choices = ecoregion_gap_table$ECO_NAME
+                                choices = ecoregion_gap_table_t$ECO_NAME
                                 ), # end select input
                   ), # end box
                     
