@@ -54,8 +54,16 @@ ecoregion_gap_table_sf <- st_as_sf(ecoregion_gap_table,
 shinyServer(function(input, output, session){
   
   ####################
-  # Global Functions #
+  #  1) NATIVE CWR   #  
   ####################
+  
+  # for native CWR tab,
+  # user can input province or ecoregion consideration
+  # and then generate a map and a table of native OR endemic CWRs by region focus
+  # to do so, the server side needs to generate plot and table data
+  # that's dependent on the users choices of geographic regions and variable of interest
+  # TO ADD: user choice to select Crop Category and Crop (but not individual CWRs)
+  # and then filter the datasets (use an observe function)
   
   filter_data <- reactive({
     x <- input$inSelectedGroup
@@ -75,20 +83,6 @@ shinyServer(function(input, output, session){
     }
     
   })
-  
-
-  
-  ####################
-  #  1) NATIVE CWR   #  
-  ####################
-  
-  # for native CWR tab,
-  # user can input province or ecoregion consideration
-  # and then generate a map and a table of native OR endemic CWRs by region focus
-  # to do so, the server side needs to generate plot and table data
-  # that's dependent on the users choices of geographic regions and variable of interest
-  # TO ADD: user choice to select Crop Category and Crop (but not individual CWRs)
-  # and then filter the datasets (use an observe function)
   
   # allow user to click on a polygon (region) and filter the CWR table to that region
   observe({ 
@@ -145,12 +139,12 @@ shinyServer(function(input, output, session){
       
       dplyr::select(ECO_NAME, PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1, 
                     PRIMARY_ASSOCIATED_CROP_COMMON_NAME, 
-                    TAXON, variable) %>%
+                    TAXON, NATIVE, ROUNDED_N_RANK) %>%
       
       relocate(ECO_NAME, PRIMARY_ASSOCIATED_CROP_COMMON_NAME, 
                TAXON, PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1, 
-               variable) %>%
-      rename("total CWRs in ecoregion" = "variable")
+               NATIVE, ROUNDED_N_RANK) 
+    
   }) # end get table data
   
   output$choroplethPlot <- renderLeaflet({
@@ -183,8 +177,10 @@ shinyServer(function(input, output, session){
   }) # end renderPlot
   
   output$nativeRangeTable <- DT::renderDataTable({
-    datatable(tableDataNativeRanges(), 
-             colnames = c("Region", "Crop", "Taxon", "Category", "CWR in Region"))
+    datatable(tableDataNativeRanges(), rownames = FALSE,
+             colnames = c("Region", "Crop", "Taxon", 
+                          "Category", "Native", 
+                          "Conservation Status"))
   }) # end renderTable
   
   ##########################
@@ -196,7 +192,7 @@ shinyServer(function(input, output, session){
     xx <- input$inSelectedGroup2
     
     if(xx == "Food crop relatives"){
-      filtered_inventory <- ecoregion_gap_table %>%
+      filtered_inventory <- ecoregion_gap_table_t %>%
         filter(TIER == 1)
     } else if(xx == "Forest resources"){
       filtered_inventory <- ecoregion_gap_table %>%
