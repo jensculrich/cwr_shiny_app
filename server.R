@@ -109,6 +109,7 @@ shinyServer(function(input, output, session){
     native_occurrence_heatmap_ecoregion <- filtered_data %>%
       # group by ecoregion
       dplyr::group_by(ECO_NAME) %>%
+      filter(FINEST_TAXON_RESOLUTION == "Y") %>%
       # distinct (since when there are >1 accessions for a species from the province the 
       # row gets expanded. We just want a count of one row per species found in the province)
       distinct(TAXON, .keep_all = TRUE) %>%
@@ -134,6 +135,7 @@ shinyServer(function(input, output, session){
       filter(ECO_NAME == input$inRegion) %>%
       # group by ecoregion
       dplyr::group_by(ECO_NAME) %>%
+      filter(FINEST_TAXON_RESOLUTION == "Y") %>%
       # distinct (since when there are >1 accessions for a species from the province the 
       # row gets expanded. We just want a count of one row per species found in the province)
       distinct(TAXON, .keep_all = TRUE) %>%
