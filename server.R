@@ -447,7 +447,7 @@ shinyServer(function(input, output, session){
   
   # add gap table to the main panel using the reactive tableData() function
   output$gapTable <- DT::renderDataTable({
-    datatable(tableData(), 
+    datatable(tableData(), rownames= FALSE,
               colnames = c("Native regions", 
                            "Regions represented by ex situ collections", 
                            "Total ex situ accessions", 
