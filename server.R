@@ -175,7 +175,7 @@ shinyServer(function(input, output, session){
                   color = ~colorNumeric("YlOrBr", variable)(variable),
                   label = mytext,
                   layerId = ~region) %>%
-      addLegend( pal=mypalette, values=~variable, opacity=0.9, title = "CWRs", position = "bottomleft" )
+      addLegend( pal=mypalette, values=~variable, opacity=0.9, title = "CWR", position = "bottomleft" )
     
   }) # end renderPlot
   
@@ -193,16 +193,16 @@ shinyServer(function(input, output, session){
     xx <- input$inSelectedGroup2
     
     if(xx == "Food crop relatives"){
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(TIER == 1)
     } else if(xx == "Forest resources"){
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(PRIMARY_ASSOCIATED_CROP_TYPE_GENERAL_1 == "Forest Resources")
     } else if(xx == "Forage and feed crops"){
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1 == "Forage and Feed")
     } else {
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(WUS == "Y")
     }
     
@@ -221,16 +221,16 @@ shinyServer(function(input, output, session){
     xx <- input$inSelectedGroup2
     
     if(xx == "Food crop relatives"){
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(TIER == 1)
     } else if(xx == "Forest resources"){
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(PRIMARY_ASSOCIATED_CROP_TYPE_GENERAL_1 == "Forest Resources")
     } else if(xx == "Forage and feed crops"){
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1 == "Forage and Feed")
     } else {
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(WUS == "Y")
     }
     
@@ -253,16 +253,16 @@ shinyServer(function(input, output, session){
     xx <- input$inSelectedGroup2
     
     if(xx == "Food crop relatives"){
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(TIER == 1)
     } else if(xx == "Forest resources"){
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(PRIMARY_ASSOCIATED_CROP_TYPE_GENERAL_1 == "Forest Resources")
     } else if(xx == "Forage and feed crops"){
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1 == "Forage and Feed")
     } else {
-      filtered_inventory <- inventory %>%
+      filtered_inventory <- ecoregion_gap_table %>%
         filter(WUS == "Y")
     }
     
@@ -324,32 +324,84 @@ shinyServer(function(input, output, session){
   })
   
   # add plot to the main panel using the reactive plotData() function
-  output$gapPlot <- renderPlot({
+  #output$gapPlot <- renderPlot({
     
     # validate allows us to share a prompt (rather than an error message until a CWR is chosen)
-    shiny::validate(
-      need(input$inSelectedCrop, "")
-    )
+   # shiny::validate(
+    #  need(input$inSelectedCrop, "")
+    #)
     
-    subset_gap_table_sf <- ecoregion_gap_table_sf %>%
-      filter(SPECIES == input$inSelectedCWR)
+  #  subset_gap_table_sf <- ecoregion_gap_table_sf %>%
+   #   filter(SPECIES == input$inSelectedCWR)
     
     # use ggplot to map the native range and conserved accessions  
-    ggplot(plotData()) +
-      geom_sf(aes(fill = as.factor(binary)),
-              color = "gray60", size = 0.1) +
-      geom_sf(data = subset_gap_table_sf, color = 'skyblue', alpha = 0.8, size = 4) + 
-      coord_sf(crs = crs_string) +
-      scale_fill_manual(values = c("0" = "gray80", "1" = "gray18"), 
-                        labels = c("No accessions with geographic data held in collection", 
-                                   "1 or more accession with geographic data held in collection", 
-                                   "Outside of native range")) +
-      theme_map() +
-      ggtitle("") +
-      theme(panel.grid.major = element_line(color = "white"),
-            plot.title = element_text(color="black",
-                                      size=10, face="bold.italic", hjust = 0.5),
-            legend.text = element_text(size=10))
+    #ggplot(plotData()) +
+     # geom_sf(aes(fill = as.factor(binary)),
+      #        color = "gray60", size = 0.1) +
+      #geom_sf(data = subset_gap_table_sf, color = 'skyblue', alpha = 0.8, size = 4) + 
+      #coord_sf(crs = crs_string) +
+      #scale_fill_manual(values = c("0" = "gray80", "1" = "gray18"), 
+      #                  labels = c("No accessions with geographic data held in collection", 
+      #                             "1 or more accession with geographic data held in collection", 
+       #                            "Outside of native range")) +
+      #theme_map() +
+      #ggtitle("") +
+      #theme(panel.grid.major = element_line(color = "white"),
+      #      plot.title = element_text(color="black",
+      #                                size=10, face="bold.italic", hjust = 0.5),
+      #      legend.text = element_text(size=10))
     
-  }) # end renderPlot renderDataTable
+  # }) # end renderPlot renderDataTable
+  
+  output$choroplethPlot2 <- renderLeaflet({
+    
+    # get data 
+    mydat <- plotData()   
+    
+    mydat_filtered <- mydat %>%
+      filter(!is.na(binary)) %>%
+      mutate(label_text = ifelse(binary == 1, "Yes", "No"))
+      
+    # mypalette_discrete <- colorFactor(palette = c("gray80", "gray18"), domain=mydat_filtered$binary)
+    mypalette_discrete<- c("gray80", "gray18")
+    
+    # Prepare the text for tooltips:
+    mytext <- paste(
+      "Region: ", mydat_filtered$ECO_NAME,"<br/>", 
+      "Ex situ collections from region: ", mydat_filtered$label_text, "<br/>", 
+      sep="") %>%
+      lapply(htmltools::HTML)
+    
+    # Basic choropleth with leaflet
+    leaflet(mydat_filtered) %>% 
+      addTiles()  %>% 
+      setView(lat=60, lng=-98 , zoom=3)  %>%
+      addPolygons(fillOpacity = 0.5, 
+                  smoothFactor = 0.5, 
+                  color = ~colorFactor(mypalette_discrete, binary)(binary),
+                  label = mytext,
+                  layerId = ~ECO_NAME) # %>%
+      
+      # addLegend(pal=mypalette_discrete, values=~binary, opacity=0.9, title = "CWR", position = "bottomleft" )
+    
+  }) # end renderPlot
+  
+  observe({
+    mydat_filtered <- ecoregion_gap_table %>%
+      filter(SPECIES == input$inSelectedCWR)
+    
+    palette_for_points <- colorFactor(
+      palette = c('goldenrod', 'magenta'),
+      domain = mydat_filtered$INSTITUTION
+    )
+    
+    leafletProxy("choroplethPlot2", data = mydat_filtered) %>%
+      addCircles(lng = ~longitude, 
+                 lat = ~latitude, 
+                 weight = 1,
+                 color = ~palette_for_points(INSTITUTION),
+                 radius = 50000
+      )
+  })
+  
 }) # server

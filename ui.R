@@ -166,7 +166,7 @@ ui <- fluidPage(
                   
                   box(#title = "Range map", solidHeader = T,
                     width = 8, collapsible = T,
-                    plotOutput("gapPlot"),
+                    leafletOutput("choroplethPlot2"),
                     includeMarkdown("www/conservation_tab.md"),
                     # provide summary data for the CWR
                     dataTableOutput("gapTable")
