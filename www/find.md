@@ -1,3 +1,3 @@
 ### Find native CWR
 
-In this section you can identify native and endemic CWRs by province or ecoregion. 
+In this section you can identify native and naturalized CWR and WUS in Canadian ecoregions. 

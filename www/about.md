@@ -1,18 +1,22 @@
-# What are CWRs?
-Crop wild relatives (CWRs) are plant species that are closely related to agricultural crops and provide important genetic resources for plant breeding (Castañeda-Álvarez et al., 2016). 
+### What are CWR and WUS?
+To ensure food security, crop production must adapt to global pressures of change, including a growing global population, pests and diseases, and intensifying frequency and magnitude of extreme weather.
+
+Plants that are close relatives of crops (crop wild relatives or [CWR](https://www.cwrdiversity.org/about/what-are-crop-wild-relatives/)) have the potential to adapt crop production to these challenges. From prehistoric to modern times, plant breeders have used CWR to adapt crop varieties through the introduction of traits linked to crop productivity and nutrition as well as resistance to environmental stress. CWR have been used to introduce such traits to crops of major global importance including tomato, corn, wheat and sunflower. CWR also offer a source of rootstock for woody perennial plants; grafting of wine-grape to rootstock from North American CWR is credited with rescuing the global wine industry [from catostrophic spread of pests ](https://discoverandshare.org/2021/08/31/grafting-the-grape-american-grapevine-rootstock-in-missouri-and-the-world/) 
+
+Wild-utilized plant species (WUS) are plants that are harvested and utilized or consumed directly by humans. WUS often provide critical food security, income sources and may have cultural value, especially in Indigenous food systems and/or in rural communities. Many WUS are especially important as sources of medicine. CWR and WUS definitions are not mutually exclusive; many CWR are wild-harvested and used directly, including many berry fruits native to Canada
+
+### Why is conservation of CWR and WUS important?
+To ensure the availability of these important genetic resources for crop breeding and for continued sustainable direct use, CWR and WUS require urgent conservation attention. Globally, ~40% of wild plant species including many CWR and WUS are threatened by extinction. Over 90% of studies that have examined genetic diversity of CWR wild-populations have documented and/or predict future [loss of within-species genetic diversity](https://nph.onlinelibrary.wiley.com/doi/10.1111/nph.17733). Extinction of CWR and WUS will encompass the loss of genetic variation that may be invaluable for future crop improvements.
 
 
-### Why is conservation of CWR important?
-The conservation of these taxa is essential for maintaining agricultural sustainability in the face of climate change (Jarvis et al., 2008).
+### Towards an Integrative Strategy for Conservation of CWR and WUS in Canada
+To understand the taxonomy and distribution of CWR and WUS in Canada we assembled a national inventory of these plants. 
 
-### What is the knowledge gap?
-Despite the increasing importance of CWRs, large gaps in our knowledge of CWR taxonomy, geographic distribution, and representation in conservation systems still remain. These gaps impede the development of further conservation action plans as well as the potential use of CWRs for crop improvement (Khoury et al., 2013). 
+We next aimed to identify the baseline conservation of these important plants in <i> ex situ </i> (away from home) conservation systems: national north american genebanks as well as in botanical garden collections. <i> Ex situ </i> conservation systems play  in protecting samples of genetic diversity that are distributed among wild populations of CWR and WUS, especially for those CWR and WUS that are vulnerable in their native habitats. <i> Ex situ </i> conservation also facilities distribution of these resources, connecting plant breeders with the traits that are found in wild-populations. Living displays in gardens may also serve to raise broader awareness of the values and threats to CWR and WUS. Geographic range maps for CWR and WUS of interest, including display of wild-populations that are currently protected through <i> ex situ </i> conservation strategies can be found on the "_" tab.
 
-### Is there a CWR inventory for Canada? 
-Canada currently lacks a national CWR inventory. Consequently, Canadian national strategies do not have a baseline knowledge for guiding CWR conservation efforts. The work reflected in this app is a first step towards advancing the development of this inventory. 
+Despite the role of <i> ex situ </i> conservation, complementation focusing on <i> in situ </i> conservation (conservation of wild-populations) is the only way to maintain diverse, healthy populations in the long-run. We encourage users of this web application to note CWR and WUS in their local regions (Click on the "Find Native CWR") that may be a focus for <i> in situ </i> conservation action, including increased protections and population monitoring. Such work should draw on coordination with diverse stakeholders including Indigenous Peoples, farmers and citizen scientists. 
 
-### What role does Botanical Gardens play?
-Botanical gardens can provide a unique role in both conserving CWRs while also educating the public on the importance of CWRs through their outreach and public engagement programs.
+Please feel free to share this web tool in efforts to promote broader awareness of CWR and WUS. We hope that the information presented here provides a starting point for advancing integrative conservation of these valuable plants.
 
 
 
