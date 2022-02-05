@@ -112,8 +112,9 @@ shinyServer(function(input, output, session){
                     PRIMARY_ASSOCIATED_CROP_COMMON_NAME, 
                     TAXON, NATIVE, ROUNDED_N_RANK, COSEWIC_DESC) %>%
       
-      relocate(ECO_NAME, PRIMARY_ASSOCIATED_CROP_COMMON_NAME, 
-               TAXON, PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1, 
+      relocate(ECO_NAME, PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1,
+               PRIMARY_ASSOCIATED_CROP_COMMON_NAME, 
+               TAXON, 
                NATIVE, ROUNDED_N_RANK,
                COSEWIC_DESC) 
     
@@ -150,8 +151,9 @@ shinyServer(function(input, output, session){
   
   output$nativeRangeTable <- DT::renderDataTable({
     datatable(tableDataNativeRanges(), rownames = FALSE,
-             colnames = c("Region", "Crop", "Taxon", 
-                          "Category", "Native", 
+             colnames = c("Region", "Category",
+                          "Crop", "Taxon", 
+                          "Native", 
                           "Conservation Status",
                           "COSEWIC Assessment"))
   }) # end renderTable
@@ -327,8 +329,7 @@ shinyServer(function(input, output, session){
       
       # format the data for the summary table
       filter(row_number() == 1) %>%
-      dplyr::select(num_native_ecoregions,
-                    total_accessions_sp,
+      dplyr::select(total_accessions_sp,
                     garden_accessions_w_finest_taxon_res,
                     genebank_accessions_w_finest_taxon_res,
                     ROUNDED_N_RANK)
@@ -402,10 +403,9 @@ shinyServer(function(input, output, session){
   # add gap table to the main panel using the reactive tableData() function
   output$gapTable <- DT::renderDataTable({
     datatable(tableData(), rownames= FALSE,
-              colnames = c("Native regions",
-                           "Total accessions in ex situ collections (species level)",
-                           "Canadian, wild-origin accessions (BG) (finest taxonomic level)", 
-                           "Canadian, wild-origin accessions (G) (finest taxonomic level)",
+              colnames = c("Total accessions in ex situ collections (species level)",
+                           "Canadian, wild-origin accessions (BG)", 
+                           "Canadian, wild-origin accessions (G)",
                            "Conservation Status"))
   }) # end renderTable
   

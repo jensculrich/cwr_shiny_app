@@ -1,6 +1,6 @@
 # Aknowledgments
 
-## CWR collection data was contributed by: 
+## CWR and WUS collection data was contributed by: 
 7 botanical gardens from across Canada - Montreal Botanic Garden (Montreal, QC), the University of Guelph Arboretum (Guelph, ON), the Royal Botanical Gardens (Burlington, ON), Mount Pleasant Cemetery Gardens (Toronto, ON), University of British Columbia Botanical Garden (Vancouver, BC), VanDusen Botanical Garden (Vancouver, BC), Reader Rock Garden (Calgary, AB).
 
 Collections data from genebanks was gathered directly through publicly available databases: 
