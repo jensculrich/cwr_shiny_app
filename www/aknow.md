@@ -11,8 +11,3 @@ Collections data from genebanks was gathered directly through publicly available
 
 ## Information on conservation status was helpfully provided by:
 [NatureServe Canada](https://www.natureserve.org/)
-
-<p align="center">
-  <img width="100" src="ubc.png">
-</p>
-
