@@ -14,34 +14,6 @@ canada_provinces_geojson <- st_read("data/canada_provinces.geojson", quiet = TRU
 ecoregion_gap_table <- as_tibble(read.csv("data/ecoregion_gap_table_by_species.csv"))
 ecoregion_gap_table_t <- as_tibble(read.csv("data/ecoregion_gap_table_by_taxon.csv"))
 
-# Define map projection
-crs_string = "+proj=lcc +lat_1=49 +lat_2=77 +lon_0=-91.52 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"
-
-# Define the mapping theme -- remove axes, ticks, borders, legends, etc.
-# Come back to this and add a legend
-theme_map <- function(base_size=9, base_family="") { # 3
-  require(grid)
-  theme_bw(base_size=base_size, base_family=base_family) %+replace%
-    theme(axis.line=element_blank(),
-          axis.text=element_blank(),
-          axis.ticks=element_blank(),
-          axis.title=element_blank(),
-          panel.background=element_blank(),
-          panel.border=element_blank(),
-          panel.grid=element_blank(),
-          panel.spacing=unit(0, "lines"),
-          plot.background=element_blank(),
-          # legend.justification = c(0,0), # no longer using a legend
-          legend.position = "none"
-    )
-}
-
-# spatially project the garden data
-ecoregion_gap_table_sf <- st_as_sf(ecoregion_gap_table, 
-                                  coords = c("longitude", "latitude"), 
-                                  crs = 4326, 
-                                  na.fail = FALSE)
-
 ################
 # SERVER LOGIC #
 ################
@@ -138,11 +110,12 @@ shinyServer(function(input, output, session){
       
       dplyr::select(ECO_NAME, PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1, 
                     PRIMARY_ASSOCIATED_CROP_COMMON_NAME, 
-                    TAXON, NATIVE, ROUNDED_N_RANK) %>%
+                    TAXON, NATIVE, ROUNDED_N_RANK, COSEWIC_DESC) %>%
       
       relocate(ECO_NAME, PRIMARY_ASSOCIATED_CROP_COMMON_NAME, 
                TAXON, PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1, 
-               NATIVE, ROUNDED_N_RANK) 
+               NATIVE, ROUNDED_N_RANK,
+               COSEWIC_DESC) 
     
   }) # end get table data
   
@@ -179,7 +152,8 @@ shinyServer(function(input, output, session){
     datatable(tableDataNativeRanges(), rownames = FALSE,
              colnames = c("Region", "Crop", "Taxon", 
                           "Category", "Native", 
-                          "Conservation Status"))
+                          "Conservation Status",
+                          "COSEWIC Assessment"))
   }) # end renderTable
   
   ##########################
@@ -361,36 +335,6 @@ shinyServer(function(input, output, session){
   
   })
   
-  # add plot to the main panel using the reactive plotData() function
-  #output$gapPlot <- renderPlot({
-    
-    # validate allows us to share a prompt (rather than an error message until a CWR is chosen)
-   # shiny::validate(
-    #  need(input$inSelectedCrop, "")
-    #)
-    
-  #  subset_gap_table_sf <- ecoregion_gap_table_sf %>%
-   #   filter(SPECIES == input$inSelectedCWR)
-    
-    # use ggplot to map the native range and conserved accessions  
-    #ggplot(plotData()) +
-     # geom_sf(aes(fill = as.factor(binary)),
-      #        color = "gray60", size = 0.1) +
-      #geom_sf(data = subset_gap_table_sf, color = 'skyblue', alpha = 0.8, size = 4) + 
-      #coord_sf(crs = crs_string) +
-      #scale_fill_manual(values = c("0" = "gray80", "1" = "gray18"), 
-      #                  labels = c("No accessions with geographic data held in collection", 
-      #                             "1 or more accession with geographic data held in collection", 
-       #                            "Outside of native range")) +
-      #theme_map() +
-      #ggtitle("") +
-      #theme(panel.grid.major = element_line(color = "white"),
-      #      plot.title = element_text(color="black",
-      #                                size=10, face="bold.italic", hjust = 0.5),
-      #      legend.text = element_text(size=10))
-    
-  # }) # end renderPlot renderDataTable
-  
   output$choroplethPlot2 <- renderLeaflet({
     
     # get data 
@@ -401,8 +345,6 @@ shinyServer(function(input, output, session){
       mutate(label_text = ifelse(binary == 1, "Yes", "No")) %>%
       mutate(binary = as.factor(binary))
       
-    # mypalette_discrete <- colorFactor(palette = c("gray80", "gray18"), domain=mydat_filtered$binary)
-    # mypalette_discrete<- c("gray80", "gray18")
     mypalette_discrete <- colorFactor(c("gray80", "gray18"), c("0", "1"))
     
     # Prepare the text for tooltips:
@@ -429,20 +371,31 @@ shinyServer(function(input, output, session){
   
   observe({
     mydat_filtered <- ecoregion_gap_table %>%
-      filter(SPECIES == input$inSelectedCWR)
+      filter(SPECIES == input$inSelectedCWR) %>%
+      mutate(INSTITUTION = as.factor(INSTITUTION)) %>%
+      filter(!is.na(INSTITUTION))
     
     palette_for_points <- colorFactor(
       palette = c('goldenrod', 'magenta'),
-      domain = mydat_filtered$INSTITUTION
+      c("BG", "G")
     )
+    
+    # levels(mydat_filtered$INSTITUTION)[levels(mydat_filtered$INSTITUTION) ==
+        #               'accession held in botanical garden collections'] <- 'BG'
     
     leafletProxy("choroplethPlot2", data = mydat_filtered) %>%
       addCircles(lng = ~longitude, 
                  lat = ~latitude,
                  fillOpacity = 0.5,
-                 weight = 1,
-                 color = ~palette_for_points(INSTITUTION),
+                 weight = .1,
+                 fillColor = ~palette_for_points(INSTITUTION),
                  radius = 50000
+      ) %>% 
+      addLegend(pal = palette_for_points, values = ~INSTITUTION,
+                group = "circles", position = "bottomleft",
+                title = "wild-populations represented in genebank (G) and 
+                botanical garden (BG) ex situ conservation collections",
+                na.label = FALSE
       )
   })
   
@@ -450,9 +403,9 @@ shinyServer(function(input, output, session){
   output$gapTable <- DT::renderDataTable({
     datatable(tableData(), rownames= FALSE,
               colnames = c("Native regions",
-                           "Total ex situ accessions", 
-                           "Canadian, wild-origin accessions (BG)", 
-                           "Canadian, wild-origin accessions (G)",
+                           "Total accessions in ex situ collections (species level)",
+                           "Canadian, wild-origin accessions (BG) (finest taxonomic level)", 
+                           "Canadian, wild-origin accessions (G) (finest taxonomic level)",
                            "Conservation Status"))
   }) # end renderTable
   

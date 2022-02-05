@@ -19,11 +19,6 @@ library(leaflet)
 library(htmltools)
 library(shinydashboard)
 library(DT)
-library(rgeos)
-library(rgdal)
-library(rmapshaper)
-library(sp)
-library(grid)
 
 ########################################
 # DATA WRANGLING AND SUPPORT FUNCTIONS #
@@ -42,12 +37,7 @@ canada_provinces_geojson <- st_read("data/canada_provinces.geojson", quiet = TRU
 # The table has a row for each native province that a species is native to with garden = NA
 # along with a row for each garden accession from each native province.
 # ecoregion_gap_table has similar setup
-ecoregion_gap_table <- as_tibble(read.csv("data/ecoregion_gap_table_by_species.csv"))
 ecoregion_gap_table_t <- as_tibble(read.csv("data/ecoregion_gap_table_by_taxon.csv"))
-
-# order gap tables so that user choices are alphabetically organized
-ecoregion_gap_table <- ecoregion_gap_table[order(ecoregion_gap_table$PRIMARY_CROP_OR_WUS_USE_SPECIFIC_1),]
-
 
 dbHeader <- dashboardHeader(title = "My Dashboard",
                             tags$li(a(href = 'http://shinyapps.company.com',
@@ -74,7 +64,7 @@ ui <- fluidPage(
     
     skin = "purple",
     
-    dashboardHeader(title = "Conservation of CWR in Canada", titleWidth = 500),
+    dashboardHeader(title = "Conservation of Canadian Crop Wild Relatives (CWR)", titleWidth = 500),
     
     dashboardSidebar(
       
